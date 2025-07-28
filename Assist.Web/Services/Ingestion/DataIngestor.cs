@@ -60,8 +60,10 @@ public class DataIngestor(
             await semaphore.WaitAsync();
             try
             {
-                chunk.Vector = await HandleWithRetry(chunk.Text);
+                // chunk.Vector = await HandleWithRetry(chunk.Text);
+                logger.LogInformation("Vector is created");
                 await chunksCollection.UpsertAsync(chunk);
+                logger.LogInformation("Chuck is saved");
             }
             finally
             {

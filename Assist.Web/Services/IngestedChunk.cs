@@ -21,6 +21,6 @@ public class IngestedChunk
     public required string Text { get; set; }
 
     [VectorStoreVector(VectorDimensions, DistanceFunction = VectorDistanceFunction)]
-    public Embedding<float>? Vector {get; set; }
-    // public string? Vector => Text;
+    // public Embedding<float>? Vector {get; set; }
+    public string? Vector => Text;
 }
