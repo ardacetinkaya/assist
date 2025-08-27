@@ -19,7 +19,7 @@ on:
       - 'Assist.sln'
 
 env:
-  AWS_REGION: us-north-1
+  AWS_REGION: eu-north-1
   ECR_REPOSITORY: helloworld/ai
   IMAGE_TAG: ${{ github.sha }}
 
