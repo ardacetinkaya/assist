@@ -87,47 +87,53 @@ jobs:
         # Get ECR registry URL from AWS account ID and region
         ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
         ECR_REGISTRY="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
-        cat > deployment.json << EOF
+        
+        # Create containers configuration
+        cat > containers.json << EOF
         {
-          "containers": {
-            "assist-web": {
-              "image": "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG",
-              "ports": {
-                "8080": "HTTP"
-              },
-              "environment": {
-                "ASPNETCORE_ENVIRONMENT": "Production",
-                "ASPNETCORE_URLS": "http://+:8080",
-                "ConnectionStrings__openai": "${{ secrets.CONNECTIONSTRING_OPENAI }}",
-                "ConnectionStrings__mongodb": "${{ secrets.CONNECTIONSTRING_MONGODB }}"
-              }
-            }
-          },
-          "publicEndpoint": {
-            "containerName": "assist-web",
-            "containerPort": 8080,
-            "healthCheck": {
-              "healthyThreshold": 2,
-              "unhealthyThreshold": 2,
-              "timeoutSeconds": 5,
-              "intervalSeconds": 30,
-              "path": "/",
-              "successCodes": "200-499"
+          "assist-web": {
+            "image": "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG",
+            "ports": {
+              "8080": "HTTP"
+            },
+            "environment": {
+              "ASPNETCORE_ENVIRONMENT": "Production",
+              "ASPNETCORE_URLS": "http://+:8080",
+              "ConnectionStrings__openai": "${{ secrets.CONNECTIONSTRING_OPENAI }}",
+              "ConnectionStrings__mongodb": "${{ secrets.CONNECTIONSTRING_MONGODB }}"
             }
           }
         }
         EOF
         
-        echo "Deployment configuration:"
-        cat deployment.json
+        # Create public endpoint configuration
+        cat > public-endpoint.json << EOF
+        {
+          "containerName": "assist-web",
+          "containerPort": 8080,
+          "healthCheck": {
+            "healthyThreshold": 2,
+            "unhealthyThreshold": 2,
+            "timeoutSeconds": 5,
+            "intervalSeconds": 30,
+            "path": "/",
+            "successCodes": "200-499"
+          }
+        }
+        EOF
+        
+        echo "Containers configuration:"
+        cat containers.json
+        echo "Public endpoint configuration:"
+        cat public-endpoint.json
 
     - name: Deploy to Lightsail Container Service
       run: |
         # Create the deployment
         aws lightsail create-container-service-deployment \
           --service-name $LIGHTSAIL_SERVICE_NAME \
-          --containers file://deployment.json \
-          --public-endpoint file://deployment.json
+          --containers file://containers.json \
+          --public-endpoint file://public-endpoint.json
         
         echo "Deployment initiated for $LIGHTSAIL_SERVICE_NAME"
 
